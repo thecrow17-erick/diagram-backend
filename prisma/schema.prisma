@@ -1,0 +1,100 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id          String @db.Uuid @unique @id @default(uuid())
+  username    String @db.VarChar(40) 
+  password    String @db.Text 
+
+  rooms       User_Room[]
+
+  createdAt   DateTime @db.Timestamp() @default(now()) 
+  updatedAt   DateTime @db.Timestamp() @default(now()) @updatedAt
+}
+
+model User_Room{
+  user_id        String @db.Uuid 
+  user           User   @relation(references: [id], fields: [user_id])
+  
+  role           Role
+  
+  room_id        Int    @db.Integer
+  room           Room   @relation(references: [id], fields: [room_id])
+
+  createdAt   DateTime @db.Timestamp() @default(now()) 
+
+  @@id([user_id,room_id])
+}
+
+enum Role{
+  OWNER
+  COLABORATOR
+  MEMBER
+}
+
+model Room{
+  id            Int @db.Integer @default(autoincrement()) @id
+  code          String @db.VarChar(8)
+  name          String @db.VarChar(50)
+  description   String @db.Text
+
+  users         User_Room[]
+  tables        Table[]
+
+  createdAt     DateTime @db.Timestamp() @default(now()) 
+  updatedAt     DateTime @db.Timestamp() @default(now()) @updatedAt
+}
+
+model Table{
+  id            Int @id @default(autoincrement()) @db.Integer
+  name          String  @db.VarChar(50)
+  description   String @db.Text
+
+  room_id       Int @db.Integer
+  room          Room @relation(references: [id],fields: [room_id])
+
+  source_relations Relation[]   @relation("source")
+  target_relations Relation[]   @relation("target")
+
+  createdAt     DateTime @db.Timestamp() @default(now()) 
+  updatedAt     DateTime @db.Timestamp() @default(now()) @updatedAt
+}
+
+model Colums{
+  id            Int @db.Integer @id @default(autoincrement())
+  name          String @db.VarChar(50)
+  data_type     String @db.VarChar(50)
+  is_PK         Boolean @db.Boolean @default(false)
+
+
+  createdAt     DateTime @db.Timestamp() @default(now()) 
+  updatedAt     DateTime @db.Timestamp() @default(now()) @updatedAt
+}
+
+model Relation{
+  id                  Int @db.Integer @id @default(autoincrement())
+  relation_type       String @db.VarChar(50) 
+  relation_class      String @db.VarChar(50) 
+
+  source_table_id     Int 
+  source_table        Table @relation("source",fields: [source_table_id], references: [id])
+
+  target_table_id     Int 
+  target_table        Table @relation("target",fields: [target_table_id], references: [id])
+
+  createdAt           DateTime @db.Timestamp() @default(now()) 
+  updatedAt           DateTime @db.Timestamp() @default(now()) @updatedAt
+}

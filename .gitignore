@@ -3,6 +3,13 @@
 /node_modules
 /build
 
+#prisma
+/prisma/migrations
+
+
+#postgres
+/postgres_data
+
 # Logs
 logs
 *.log

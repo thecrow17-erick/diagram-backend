@@ -69,15 +69,21 @@ model Table{
   source_relations Relation[]   @relation("source")
   target_relations Relation[]   @relation("target")
 
+
+  columns       Column[]
+
   createdAt     DateTime @db.Timestamp() @default(now()) 
   updatedAt     DateTime @db.Timestamp() @default(now()) @updatedAt
 }
 
-model Colums{
+model Column{
   id            Int @db.Integer @id @default(autoincrement())
   name          String @db.VarChar(50)
   data_type     String @db.VarChar(50)
   is_PK         Boolean @db.Boolean @default(false)
+
+  table_id      Int 
+  table         Table @relation(fields: [table_id],references: [id])
 
 
   createdAt     DateTime @db.Timestamp() @default(now()) 
@@ -88,6 +94,8 @@ model Relation{
   id                  Int @db.Integer @id @default(autoincrement())
   relation_type       String @db.VarChar(50) 
   relation_class      String @db.VarChar(50) 
+
+  description         String @db.VarChar(50)
 
   source_table_id     Int 
   source_table        Table @relation("source",fields: [source_table_id], references: [id])

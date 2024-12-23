@@ -25,7 +25,7 @@ export class UserService {
     return createUser;
   }
 
-  private hashPass(password: string, saltRounds: number = 10){
+  private hashPass(password: string, saltRounds: number = 10): string{
     const salt = bcrypt.genSaltSync(saltRounds);
     return bcrypt.hashSync(password, salt);
   }

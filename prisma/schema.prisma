@@ -47,9 +47,11 @@ enum Role{
 
 model Room{
   id            Int @db.Integer @default(autoincrement()) @id
-  code          String @db.VarChar(8)
+  code          String @db.VarChar(8) @unique
   name          String @db.VarChar(50)
   description   String @db.Text
+
+  status        Boolean @default(true)
 
   users         User_Room[]
   tables        Table[]

@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { EnvConfig, envSchema } from './configuration';
 import { CommonModule } from './common/common.module';
 import { AuthModule } from './auth/auth.module';
+import { RoomModule } from './room/room.module';
 
 @Module({
   imports: [
@@ -16,7 +17,8 @@ import { AuthModule } from './auth/auth.module';
       validationSchema: envSchema
     }),
     CommonModule,
-    AuthModule
+    AuthModule,
+    RoomModule
   ],
   controllers: [],
   providers: [],

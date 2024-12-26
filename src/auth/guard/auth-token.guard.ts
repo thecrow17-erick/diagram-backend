@@ -1,5 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
-import { Observable } from 'rxjs';
+import { UserService } from 'src/user/services';
+import { AuthService } from '../services';
 
 @Injectable()
 export class AuthTokenGuard implements CanActivate {
@@ -18,6 +19,17 @@ export class AuthTokenGuard implements CanActivate {
     if (!token || Array.isArray(token))
       throw new UnauthorizedException('No hay token');
 
+    const payload = this.authService.useToken(token);
+
+    if(typeof payload == "string")
+      throw new UnauthorizedException(payload);
+
+    if(payload.isExpired)
+      throw new UnauthorizedException("Token expirado");
+
+    const findUser = await this.userService.findIdUser(payload.userId);
+
+    req["user_id"] = findUser.id;
     return true;
   }
 }

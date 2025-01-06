@@ -5,12 +5,46 @@ import * as bcrypt from "bcrypt";
 
 import { PrismaService } from 'src/prisma/services';
 import { UserCreateDto } from '../dto';
+import { QueryCommonDto } from 'src/common/dto';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly prismaService: PrismaService
   ){}
+
+
+  public async findAll({
+    search,
+    skip,
+    limit
+  }: QueryCommonDto): Promise<User[]> {
+    const findAll = await this.prismaService.user.findMany({
+      where: {
+        username: {
+          contains: search,
+          mode: "insensitive"
+        }
+      },
+      skip,
+      take: limit
+    })
+    return findAll;
+  }
+
+  public async countAll({
+    search  
+  }: QueryCommonDto): Promise<number> {
+    const findAll = await this.prismaService.user.count({
+      where: {
+        username: {
+          contains: search,
+          mode: "insensitive"
+        }
+      }
+    })
+    return findAll;
+  }
 
   public async createUser(userCreateDto: UserCreateDto): Promise<User>{
     const findUser = await this.findUser(userCreateDto.username);

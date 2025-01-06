@@ -1,0 +1,97 @@
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { IApiResponse } from 'src/common/interface';
+import { IResponseRoom, IResponseRooms } from '../interfaces';
+import { Request } from 'express';
+import { QueryCommonDto } from 'src/common/dto';
+import { RoomService } from '../services';
+import { CreateRoomDto } from '../dto';
+import { AuthTokenGuard } from 'src/auth/guard';
+
+@Controller('room')
+@UseGuards(AuthTokenGuard)
+export class RoomController {
+  constructor(
+    private readonly roomService: RoomService
+  ){}
+
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  public async findRomms(
+    @Req() req: Request,
+    @Query() query: QueryCommonDto
+  ): Promise<IApiResponse<IResponseRooms>> {
+    const statusCode = HttpStatus.OK;
+    const {user_id} = req;
+    const [rooms, total] = await Promise.all([
+      this.roomService.findAll(query,user_id),
+      this.roomService.countAll(query,user_id)
+    ])
+    return {
+      statusCode,
+      message: "Todos las salas",
+      data: {
+        total,
+        rooms
+      }
+    }
+  }
+
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  public async createRomms(
+    @Req() req: Request,
+    @Body() createRoomDto: CreateRoomDto
+  ): Promise<IApiResponse<IResponseRoom>>{
+    const statusCode = HttpStatus.CREATED;
+    const {user_id} = req;
+    const room = await this.roomService.createRoom(createRoomDto,user_id);
+
+    return { 
+      statusCode,
+      message: "Sala creada",
+      data: {
+        room 
+      }
+    }
+  
+  }
+
+  @Patch(':id')
+  @HttpCode(HttpStatus.OK)
+  public async updateRoom(
+    @Param("id", ParseIntPipe) id: number,
+    @Req() req: Request,
+    @Body() createRoomDto:CreateRoomDto
+  ): Promise<IApiResponse<IResponseRoom>> {
+    const statusCode = HttpStatus.OK;
+    const {user_id} = req;
+    const room = await this.roomService.updateRoom(id,createRoomDto,user_id);
+    return {
+      statusCode,
+      message: "Sala actualizada",
+      data: {
+        room
+      }
+    }
+  }
+
+  @Patch("code/:id")
+  @HttpCode(HttpStatus.OK)
+  public async updateCodeRoom(
+    @Param("id", ParseIntPipe) id: number,
+    @Req() req: Request
+  ): Promise<IApiResponse<IResponseRoom>> {
+    const statusCode = HttpStatus.OK;
+    const {user_id} = req;
+    const room = await this.roomService.updateCodeRoom(id,user_id);
+
+    return {
+      statusCode,
+      message: "Codigo de la sala actualizada",
+      data: {
+        room
+      }
+    }
+  }
+
+}

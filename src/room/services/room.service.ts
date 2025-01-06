@@ -1,9 +1,10 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Room } from '@prisma/client';
 import { QueryCommonDto } from 'src/common/dto';
 import { PrismaService } from 'src/prisma/services';
 import { CreateRoomDto } from '../dto';
 import { UserService } from 'src/user/services';
+import { UserRoomService } from './user-room.service';
 
 @Injectable()
 export class RoomService {
@@ -11,7 +12,9 @@ export class RoomService {
 
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly userService: UserService
+    private readonly userService: UserService,
+    @Inject(forwardRef(() => UserRoomService))
+    private readonly userRoomService: UserRoomService
   ) {}
 
 
@@ -24,17 +27,31 @@ export class RoomService {
     return codigo.toUpperCase();
   }
 
-  public async findAll({
-    search,
-    limit,
-    skip
-  }: QueryCommonDto): Promise<Room[]>{
+  public async findAll(
+    {
+      search,
+      limit,
+      skip
+    }: QueryCommonDto,
+      userId: string
+  ): Promise<Room[]>{
     const findAllRoom = await this.prismaService.room.findMany({
       where: {
-        name: {
-          contains: search,
-          mode: "insensitive"
-        }
+        AND: [
+          {
+            name: {
+              contains: search,
+              mode: "insensitive"
+            }
+          },
+          {
+            users: {
+              every: {
+                user_id: userId
+              }
+            }
+          }
+        ]
       },
       take: limit,
       skip
@@ -42,6 +59,32 @@ export class RoomService {
     return findAllRoom;
   }
 
+  public async countAll (
+    {
+      search,
+    }: QueryCommonDto,
+    userId: string): Promise<number> {
+    const findAllRoom = await this.prismaService.room.count({
+      where: {
+        AND: [
+          {
+            name: {
+              contains: search,
+              mode: "insensitive"
+            }
+          },
+          {
+            users: {
+              every: {
+                user_id: userId
+              }
+            }
+          }
+        ]
+      },
+    })
+    return findAllRoom;
+  }
 
 
   public async findIdRoom(id: number): Promise<Room> {
@@ -113,12 +156,10 @@ export class RoomService {
     if(findRoomName.length)
       throw new BadRequestException("Ingrese otro nombre")
 
-    const findUserRoom = await this.prismaService.user_Room.findFirst({
-      where:{
-        room_id: findIdRoom.id,
-        user_id: findUser.id
-      }
-    });
+    const findUserRoom = await this.userRoomService.findUserRoom(
+        findUser.id,
+        findIdRoom.id
+    );
     if(!findUserRoom || findUserRoom.role !== "OWNER")
       throw new BadRequestException("No puede editar esta sala")
 
@@ -140,12 +181,10 @@ export class RoomService {
 
     const findIdRoom = await this.findIdRoom(id);
 
-    const findUserRoom = await this.prismaService.user_Room.findFirst({
-      where:{
-        room_id: findIdRoom.id,
-        user_id: findUser.id
-      }
-    });
+    const findUserRoom = await this.userRoomService.findUserRoom(
+      findUser.id,
+      findIdRoom.id
+    );
     if(!findUserRoom || findUserRoom.role === "COLABORATOR")
       throw new BadRequestException("No puede actualizar el codigo de esta sala")
 
@@ -157,7 +196,6 @@ export class RoomService {
         code: this.generateCodeRoom()
       }
     })
-
     return updateCodeRoom;
   }
 

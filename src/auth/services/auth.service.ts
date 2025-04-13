@@ -17,7 +17,7 @@ export class AuthService {
   ){}
 
   public async login(loginDto: LoginDto): Promise<IAuthResponse>{
-    const findUser = await this.userService.findUser(loginDto.username);
+    const findUser = await this.userService.findUserEmail(loginDto.email);
     if(!findUser)
       throw new NotFoundException("Usuario no encontrado")
 

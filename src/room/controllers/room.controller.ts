@@ -21,10 +21,10 @@ export class RoomController {
     @Query() query: QueryCommonDto
   ): Promise<IApiResponse<IResponseRooms>> {
     const statusCode = HttpStatus.OK;
-    const {user_id} = req;
+    const {UserId} = req;
     const [rooms, total] = await Promise.all([
-      this.roomService.findAll(query,user_id),
-      this.roomService.countAll(query,user_id)
+      this.roomService.findAll(query,UserId),
+      this.roomService.countAll(query,UserId)
     ])
     return {
       statusCode,
@@ -43,8 +43,8 @@ export class RoomController {
     @Body() createRoomDto: CreateRoomDto
   ): Promise<IApiResponse<IResponseRoom>>{
     const statusCode = HttpStatus.CREATED;
-    const {user_id} = req;
-    const room = await this.roomService.createRoom(createRoomDto,user_id);
+    const {UserId} = req;
+    const room = await this.roomService.createRoom(createRoomDto,UserId);
 
     return { 
       statusCode,
@@ -64,8 +64,8 @@ export class RoomController {
     @Body() createRoomDto:CreateRoomDto
   ): Promise<IApiResponse<IResponseRoom>> {
     const statusCode = HttpStatus.OK;
-    const {user_id} = req;
-    const room = await this.roomService.updateRoom(id,createRoomDto,user_id);
+    const {UserId} = req;
+    const room = await this.roomService.updateRoom(id,createRoomDto,UserId);
     return {
       statusCode,
       message: "Sala actualizada",
@@ -82,8 +82,8 @@ export class RoomController {
     @Req() req: Request
   ): Promise<IApiResponse<IResponseRoom>> {
     const statusCode = HttpStatus.OK;
-    const {user_id} = req;
-    const room = await this.roomService.updateCodeRoom(id,user_id);
+    const {UserId} = req;
+    const room = await this.roomService.updateCodeRoom(id,UserId);
 
     return {
       statusCode,

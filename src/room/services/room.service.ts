@@ -1,10 +1,11 @@
 import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { Room } from '@prisma/client';
+import { Role, Room } from '@prisma/client';
 import { QueryCommonDto } from 'src/common/dto';
 import { PrismaService } from 'src/prisma/services';
 import { CreateRoomDto } from '../dto';
 import { UserService } from 'src/user/services';
 import { UserRoomService } from './user-room.service';
+import { IResponseRoomAll } from '../interfaces';
 
 @Injectable()
 export class RoomService {
@@ -34,7 +35,7 @@ export class RoomService {
       skip
     }: QueryCommonDto,
       userId: string
-  ): Promise<Room[]>{
+  ): Promise<IResponseRoomAll[]>{
     const findAllRoom = await this.prismaService.room.findMany({
       where: {
         AND: [
@@ -46,7 +47,7 @@ export class RoomService {
           },
           {
             users: {
-              every: {
+              some: {
                 user_id: userId
               }
             }
@@ -54,7 +55,25 @@ export class RoomService {
         ]
       },
       take: limit,
-      skip
+      skip,
+      select: {
+        id: true,
+        code: true,
+        name: true,
+        description: true,
+        createdAt: true,
+        updatedAt: true,
+        status: true,
+        users: {
+          where: {
+            user_id: userId
+          },
+          select: {
+            role: true,
+            createdAt: true,
+          }
+        }
+      }
     })
     return findAllRoom;
   }
@@ -75,7 +94,7 @@ export class RoomService {
           },
           {
             users: {
-              every: {
+              some: {
                 user_id: userId
               }
             }
@@ -125,9 +144,11 @@ export class RoomService {
         users:{
           create: {
             user_id: findeUser.id,
-            role: "OWNER"
+            role: "OWNER",
+            status: "OFICIAL"
           }
-        }
+        },
+        data: {}
       }
     })
 

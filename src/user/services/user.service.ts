@@ -6,6 +6,7 @@ import * as bcrypt from "bcrypt";
 import { PrismaService } from 'src/prisma/services';
 import { UserCreateDto } from '../dto';
 import { QueryCommonDto } from 'src/common/dto';
+import { IOptionUser } from '../interface';
 
 @Injectable()
 export class UserService {
@@ -13,6 +14,30 @@ export class UserService {
     private readonly prismaService: PrismaService
   ){}
 
+
+
+  public async findAllRoom({
+      skip,
+      limit
+    }: QueryCommonDto,
+      option?: IOptionUser
+  ): Promise<User[]> {
+    const findUsers = await this.prismaService.user.findMany({
+      where: option.where,
+      skip,
+      take:limit
+    });
+    return findUsers;
+  }
+
+  public async countAllRoom(
+    option?: IOptionUser
+  ): Promise<number> {
+    const findAll = await this.prismaService.user.count({
+      where: option.where
+    })
+    return findAll;
+  }
 
   public async findAll({
     search,
@@ -47,12 +72,13 @@ export class UserService {
   }
 
   public async createUser(userCreateDto: UserCreateDto): Promise<User>{
-    const findUser = await this.findUser(userCreateDto.username);
+    const findUser = await this.findUserEmail(userCreateDto.email);
     if(findUser)
       throw new BadRequestException(`El username ya se encuentra en uso`);
     const createUser = await this.prismaService.user.create({
       data: {
         username: userCreateDto.username,
+        email: userCreateDto.email,
         password: this.hashPass(userCreateDto.password),
       }
     })
@@ -71,6 +97,15 @@ export class UserService {
           contains: name,
           mode: 'insensitive'
         }
+      }
+    });
+    return findUser;
+  }
+
+  public async findUserEmail(email: string): Promise<User> {
+    const findUser = await this.prismaService.user.findFirst({
+      where:{
+        email
       }
     });
     return findUser;

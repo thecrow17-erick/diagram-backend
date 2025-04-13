@@ -17,6 +17,7 @@ datasource db {
 model User {
   id          String @db.Uuid @unique @id @default(uuid())
   username    String @db.VarChar(40) 
+  email       String @db.VarChar(50)
   password    String @db.Text 
 
   rooms       User_Room[]
@@ -34,7 +35,9 @@ model User_Room{
   room_id        Int    @db.Integer
   room           Room   @relation(references: [id], fields: [room_id])
 
-  createdAt   DateTime @db.Timestamp() @default(now()) 
+
+  status         STATUS @default(OFICIAL)
+  createdAt      DateTime @db.Timestamp() @default(now()) 
 
   @@id([user_id,room_id])
 }
@@ -43,6 +46,13 @@ enum Role{
   OWNER
   COLABORATOR
   MEMBER
+}
+
+enum STATUS {
+  INVITATION
+  OFICIAL
+  REFUSED
+  REMOVED
 }
 
 model Room{
@@ -54,57 +64,9 @@ model Room{
   status        Boolean @default(true)
 
   users         User_Room[]
-  tables        Table[]
+  data          Json
 
   createdAt     DateTime @db.Timestamp() @default(now()) 
   updatedAt     DateTime @db.Timestamp() @default(now()) @updatedAt
 }
 
-model Table{
-  id            Int @id @default(autoincrement()) @db.Integer
-  name          String  @db.VarChar(50)
-  description   String @db.Text
-
-  room_id       Int @db.Integer
-  room          Room @relation(references: [id],fields: [room_id])
-
-  source_relations Relation[]   @relation("source")
-  target_relations Relation[]   @relation("target")
-
-
-  columns       Column[]
-
-  createdAt     DateTime @db.Timestamp() @default(now()) 
-  updatedAt     DateTime @db.Timestamp() @default(now()) @updatedAt
-}
-
-model Column{
-  id            Int @db.Integer @id @default(autoincrement())
-  name          String @db.VarChar(50)
-  data_type     String @db.VarChar(50)
-  is_PK         Boolean @db.Boolean @default(false)
-
-  table_id      Int 
-  table         Table @relation(fields: [table_id],references: [id])
-
-
-  createdAt     DateTime @db.Timestamp() @default(now()) 
-  updatedAt     DateTime @db.Timestamp() @default(now()) @updatedAt
-}
-
-model Relation{
-  id                  Int @db.Integer @id @default(autoincrement())
-  relation_type       String @db.VarChar(50) 
-  relation_class      String @db.VarChar(50) 
-
-  description         String @db.VarChar(50)
-
-  source_table_id     Int 
-  source_table        Table @relation("source",fields: [source_table_id], references: [id])
-
-  target_table_id     Int 
-  target_table        Table @relation("target",fields: [target_table_id], references: [id])
-
-  createdAt           DateTime @db.Timestamp() @default(now()) 
-  updatedAt           DateTime @db.Timestamp() @default(now()) @updatedAt
-}

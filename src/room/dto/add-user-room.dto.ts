@@ -7,10 +7,6 @@ export class AddUserRoomDto {
   @IsString()
   userId: string;
 
-  @IsNumber()
-  @IsInt()
-  roomId: number;
-
   @IsEnum(Role, {
     message: "El rol no es valido"
   })

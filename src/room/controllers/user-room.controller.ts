@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { AuthTokenGuard } from 'src/auth/guard';
 import { QueryCommonDto } from 'src/common/dto';
@@ -8,8 +8,10 @@ import { UserService } from 'src/user/services';
 import { AddUserRoomDto } from '../dto';
 import { IReponseUserRoom } from '../interfaces/user-room-response.interface';
 import { UserRoomService } from '../services';
+import { RoomRoleGuard } from 'src/auth/guard/room-role.guard';
+import { Roles } from 'src/auth/decorator';
 
-@Controller('user-room')
+@Controller('user-room/:roomCode')
 @UseGuards(AuthTokenGuard)
 export class UserRoomController {
   constructor(
@@ -18,19 +20,58 @@ export class UserRoomController {
   ) {}
 
 
-  @Get("search-user")
+  @Get()
   @HttpCode(HttpStatus.OK)
   public async findUser(
-    @Query() query: QueryCommonDto
+    @Query() query: QueryCommonDto,
+    @Param('roomCode', ParseIntPipe) roomId: number
   ): Promise<IApiResponse<IResponseUsers>>{
     const statusCode = HttpStatus.OK;
     const [users, total] = await Promise.all([
-      this.userService.findAll(query),
-      this.userService.countAll(query)
+      this.userService.findAllRoom(
+        query, {
+          where: {
+            AND: [
+              {
+                rooms: {
+                  none: {
+                    room_id: roomId
+                  }
+                }
+              }, 
+              {
+                username: {
+                  contains: query.search,
+                  mode: "insensitive"
+                }
+              }
+            ]
+          }
+        }
+      ),
+      this.userService.countAllRoom({
+        where: {
+          AND: [
+            {
+              rooms: {
+                none: {
+                  room_id: roomId
+                }
+              }
+            }, 
+            {
+              username: {
+                contains: query.search,
+                mode: "insensitive"
+              }
+            }
+          ]
+        }
+      })
     ])
     return {
       statusCode,
-      message: "Los usuarios buscados",
+      message: "Los usuarios buscados que no pertenezcan a la sala",
       data: {
         total,
         users
@@ -38,23 +79,23 @@ export class UserRoomController {
     }
   }
 
-  @Post()
+  @Post("invitation")
   @HttpCode(HttpStatus.CREATED)
+  @Roles("OWNER","COLABORATOR")
+  @UseGuards(RoomRoleGuard)
   public async addUserRoom(
     @Body() addUserRoomDto:AddUserRoomDto,
-    @Req() req: Request
+    @Param('roomCode', ParseIntPipe) roomId: number,
   ): Promise<IApiResponse<IReponseUserRoom>> {
-    const statusCode = HttpStatus.CREATED;
-    const {user_id} = req;
-    const userRomm = await this.userRoomService.addUserRoom(addUserRoomDto,user_id);
-
-    return {
-      statusCode,
-      message: "Se agrego al usuario en la sala",
-      data:{
-        user_room: userRomm
+      const statusCode = HttpStatus.CREATED;
+      const addUserRoom = await this.userRoomService.invitationUserRoom(addUserRoomDto,roomId);
+      return {
+        statusCode,
+        message: "Usuario agregado correctamente a la sala.",
+        data: {
+          user_room: addUserRoom
+        }
       }
-    }
   }
 
 }

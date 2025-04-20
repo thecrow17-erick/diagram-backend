@@ -1,6 +1,6 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { IApiResponse } from 'src/common/interface';
-import { IResponseRoom, IResponseRooms } from '../interfaces';
+import { IResponseRoom, IResponseRoomId, IResponseRooms } from '../interfaces';
 import { Request } from 'express';
 import { QueryCommonDto } from 'src/common/dto';
 import { RoomService } from '../services';
@@ -32,6 +32,36 @@ export class RoomController {
       data: {
         total,
         rooms
+      }
+    }
+  }
+
+  @Get(":id")
+  @HttpCode(HttpStatus.OK)
+  public async findIdRoom(
+    @Param('id', ParseIntPipe) roomId: number
+  ): Promise<IApiResponse<IResponseRoomId>>{
+    const statusCode = HttpStatus.OK;
+    const findRoom = await this.roomService.findIdRoom(roomId, {
+      id: true,
+      name: true,
+      description: true,
+      code: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+      users: {
+        include: {
+          user: true
+        }
+      }
+    });
+
+    return {
+      statusCode,
+      message: "La sala con todos los usuarios",
+      data: {
+        room: findRoom
       }
     }
   }

@@ -4,7 +4,7 @@ import * as bcrypt from "bcrypt";
 
 
 import { PrismaService } from 'src/prisma/services';
-import { UserCreateDto } from '../dto';
+import { UpdatedUserPassDto, UserCreateDto, UserUpdatedDto } from '../dto';
 import { QueryCommonDto } from 'src/common/dto';
 import { IOptionUser } from '../interface';
 
@@ -24,6 +24,7 @@ export class UserService {
   ): Promise<User[]> {
     const findUsers = await this.prismaService.user.findMany({
       where: option.where,
+      select: option.select,
       skip,
       take:limit
     });
@@ -120,5 +121,42 @@ export class UserService {
     if(!findUser)
       throw new NotFoundException(`El usuario ${id} no encontrado`)
     return findUser;
+  }
+
+  public async updatedUser(id:string, userUpdateDto: UserUpdatedDto): Promise<User> {
+    const findUser = await this.findIdUser(id);
+
+    const updatedUser = await this.prismaService.user.update({
+      where:{
+        id
+      },
+      data: {
+        email: userUpdateDto.email,
+        username: userUpdateDto.username        
+      }
+    });
+
+    return updatedUser;
+  }
+
+  public async updatedPassword(id: string, updPass: UpdatedUserPassDto): Promise<User> {
+    const findUser = await this.findIdUser(id);
+
+    const validatePass = bcrypt.compareSync(updPass.password, findUser.password);
+
+    if(!validatePass)
+      throw new BadRequestException("La contraseña no coinciden");
+
+    const updatedPass = await this.prismaService.user.update({
+      where: {
+        id: findUser.id
+      },
+      data:{
+        password: this.hashPass(updPass.newPass)
+      }
+    });
+
+    return updatedPass;
+
   }
 }

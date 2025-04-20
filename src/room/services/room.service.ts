@@ -1,5 +1,5 @@
 import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { Role, Room } from '@prisma/client';
+import { Prisma, Role, Room } from '@prisma/client';
 import { QueryCommonDto } from 'src/common/dto';
 import { PrismaService } from 'src/prisma/services';
 import { CreateRoomDto } from '../dto';
@@ -51,6 +51,13 @@ export class RoomService {
                 user_id: userId
               }
             }
+          },
+          {
+            users: {
+              every: {
+                status: "OFICIAL"
+              }
+            }
           }
         ]
       },
@@ -98,6 +105,13 @@ export class RoomService {
                 user_id: userId
               }
             }
+          },
+          {
+            users: {
+              every: {
+                status: "OFICIAL"
+              }
+            }
           }
         ]
       },
@@ -106,11 +120,12 @@ export class RoomService {
   }
 
 
-  public async findIdRoom(id: number): Promise<Room> {
+  public async findIdRoom(id: number, select?: Prisma.RoomSelect): Promise<any> {
     const findRoom = await this.prismaService.room.findUnique({
       where: {
         id
-      }
+      },
+      select: select
     });
     if(!findRoom)
       throw new NotFoundException("La sala no se encuentra")
@@ -122,7 +137,7 @@ export class RoomService {
     const findRoom = await this.prismaService.room.findFirst({
       where: {
         name
-      }
+      },
     });
 
     return findRoom;

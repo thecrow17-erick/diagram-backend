@@ -12,7 +12,7 @@ import { MailModule } from 'src/mail/mail.module';
   imports: [
     PrismaModule,
     forwardRef( () => AuthModule),
-    UserModule,
+    forwardRef( () => UserModule),
     MailModule
   ],
   controllers: [RoomController, UserRoomController],

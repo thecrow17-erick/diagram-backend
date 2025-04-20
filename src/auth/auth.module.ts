@@ -10,7 +10,7 @@ import { RoomModule } from 'src/room/room.module';
   providers: [AuthService],
   controllers: [AuthController],
   imports: [
-    UserModule,
+    forwardRef( () => UserModule),
     PrismaModule,
     JwtModule,
     forwardRef( () => RoomModule)

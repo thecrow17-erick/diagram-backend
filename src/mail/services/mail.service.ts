@@ -26,5 +26,19 @@ export class MailService {
 
     
   }
+  public async acceptInvitation(invitation: IInvitationRoom): Promise<void> {
+    const url = this.configService.get<string>("url_frontend");
 
+    await this.mailerService.sendMail({
+      to: invitation.user.email,
+      subject: `Bienvenido a la sala ${invitation.room.name}!`,
+      template: "./welcome",
+      context: {
+        roomName: invitation.room.name,
+        userName: invitation.user.username,
+        roomUrl: `${url}/room/${invitation.room.code}`,
+      }
+    })
+    
+  }
 }

@@ -19,7 +19,7 @@ Cada objeto debe seguir este formato según su tipo:
                                                 
 1. RECTÁNGULO:
 {
-    "type": "rectangle",
+    "type": "rect",
     "left": [posición X],
     "top": [posición Y],
     "width": [ancho],
@@ -40,33 +40,22 @@ Cada objeto debe seguir este formato según su tipo:
     "id": "[id único]"
 }
                                                 
-3. TRIÁNGULO:
-{
-    "type": "triangle",
-    "left": [posición X],
-    "top": [posición Y],
-    "width": [ancho],
-    "height": [alto],
-    "fill": [color hexadecimal],
-    "stroke": [color hexadecimal],
-    "id": "[id único]"
-}
                                                 
-4. LÍNEA:
+3. LÍNEA:
 {
     "type": "line",
-    "x1": [numero decimal],
-    "y1": [numero decimal],
-    "x2": [numero decimal],
-    "y2": [numero decimal],
+    "x1": [posición X1],
+    "y1": [posición Y1],
+    "x2": [posición X2],
+    "y2": [posición Y2],
     "stroke": [color hexadecimal],
     "strokeWidth": 2,
     "id": "[id único]"
 }
                                                 
-5. TEXTO:
+4. TEXTO:
 {
-    "type": "text",
+    "type": "textbox",
     "left": [posición X],
     "top": [posición Y],
     "text": [texto detectado],
@@ -78,7 +67,7 @@ Cada objeto debe seguir este formato según su tipo:
     "id": "[id único]"
 }
 
-6. PATH (dibujo a mano alzada):
+5. PATH (dibujo a mano alzada):
 {
     "type": "path",
     "path": [string de datos SVG path],

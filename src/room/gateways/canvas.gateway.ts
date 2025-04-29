@@ -30,15 +30,14 @@ export class CanvasGateway implements OnGatewayConnection, OnGatewayDisconnect{
     client.join(roomCode);
     //enviar el estado actual del canvas
     let canva;
-    const room = await this.prismaService.room.findFirst({
-      where: {code: roomCode}
-    });
-    if(room){
-      canva = room.data.toString();
-    }else if(this.canvasStates.get(roomCode)){
-      canva = this.canvasStates.get(roomCode)
+    const roomState = this.canvasStates.get(roomCode);
+    if(roomState){
+      canva = this.canvasStates.get(roomCode);
     }else {
-      canva = '[]';
+      const findRoom = await this.prismaService.room.findFirst({
+        where: {code: roomCode}
+      });
+      canva = findRoom.data?? '[]'
     }
     client.emit('canvasState', canva);
   }

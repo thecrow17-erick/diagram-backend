@@ -107,7 +107,7 @@ export class ImportsCanvaService {
         // Asegurarse de que todos los elementos tienen un objectId y coordenadas x,y
         elements = elements.map(elem => {
             if (!elem.objectId) {
-                elem.objectId = uuid();
+                elem.id = uuid();
             }
             // Asegurarse de que cada elemento tiene coordenadas x, y
             if (elem.left !== undefined && elem.x === undefined) {

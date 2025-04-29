@@ -178,11 +178,8 @@ export class RoomService {
       throw new BadRequestException("Ingrese otro nombre")
 
     let data = {};
-    console.log("entrando?");
     if(createRoomDto.sketch){
-      console.log("entra");
       data = await this.importsCanvaService.processSketch(createRoomDto.sketch.buffer);
-      console.log(data);
     }
    
     const createRoom = await this.prismaService.room.create({

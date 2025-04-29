@@ -1,13 +1,40 @@
 version: '3.8'
 services:
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile   
+      target: prod   
+    depends_on:
+      - diagram_db
+    ports:
+      - ${PORT}:${PORT}
+    container_name: nest_api
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      SECRET_KEY_JWT: ${SECRET_KEY_JWT}
+      POSTGRES_DB: ${DB_NAME}
+      PORT: ${PORT}
+      ACCOUNT_EMAIL: ${ACCOUNT_EMAIL}
+      PASSWORD_EMAIL: ${PASSWORD_EMAIL}
+      HOST_EMAIL: ${HOST_EMAIL}
+      FRONTEND_URL: ${FRONTEND_URL}
+      API_OPENAI: ${API_OPENAI}
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
   diagram_db:
     image: postgres:15
     restart: unless-stopped
     container_name: diagram_db_container
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: erick17
-      POSTGRES_DB: diagrambd
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:

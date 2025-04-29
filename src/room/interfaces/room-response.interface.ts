@@ -1,4 +1,4 @@
-import { Role, Room, User, User_Room } from "@prisma/client";
+import { $Enums, Role, Room, STATUS, User, User_Room } from "@prisma/client";
 
 
 export interface IResponseRooms { 
@@ -12,14 +12,21 @@ export interface IResponseRoom {
 }
 
 export interface IResponseRoomAll {
-  id:           number;
-  code:         string;
-  name:         string;
-  description:  string;
-  status:       boolean; 
-  createdAt:    Date;
-  updatedAt:    Date;
-  users:        IUsersRoomRole[];
+  role:       $Enums.Role;
+  status:     $Enums.STATUS;
+  createdAt:  Date;
+  room:       IRoomFirst;
+}
+
+
+interface IRoomFirst {
+  name: string;
+  id: number;
+  code: string;
+  description: string;
+  status: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 interface IUsersRoomRole {

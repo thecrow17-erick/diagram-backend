@@ -1,3 +1,4 @@
+import { ImportsCanvaService } from './../../imports-canva/services/imports-canva.service';
 import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, Role, Room } from '@prisma/client';
 import { QueryCommonDto } from 'src/common/dto';
@@ -5,7 +6,7 @@ import { PrismaService } from 'src/prisma/services';
 import { CreateRoomDto } from '../dto';
 import { UserService } from 'src/user/services';
 import { UserRoomService } from './user-room.service';
-import { IResponseRoomAll } from '../interfaces';
+import { IResponseRoomAll, IUserRoomInvitation } from '../interfaces';
 
 @Injectable()
 export class RoomService {
@@ -15,7 +16,8 @@ export class RoomService {
     private readonly prismaService: PrismaService,
     private readonly userService: UserService,
     @Inject(forwardRef(() => UserRoomService))
-    private readonly userRoomService: UserRoomService
+    private readonly userRoomService: UserRoomService,
+    private readonly importsCanvaService:ImportsCanvaService 
   ) {}
 
 
@@ -28,95 +30,118 @@ export class RoomService {
     return codigo.toUpperCase();
   }
 
-  public async findAll(
-    {
-      search,
-      limit,
-      skip
-    }: QueryCommonDto,
-      userId: string
-  ): Promise<IResponseRoomAll[]>{
-    const findAllRoom = await this.prismaService.room.findMany({
-      where: {
-        AND: [
-          {
-            name: {
-              contains: search,
-              mode: "insensitive"
+  public async findInvitation(query: QueryCommonDto, userId: string): Promise<IUserRoomInvitation[]> {
+      const findInvitation = await this.prismaService.user_Room.findMany({
+        where: {
+          AND: [
+            {
+              user_id: userId
+            },
+            {
+              status: "INVITATION"
             }
-          },
-          {
-            users: {
-              some: {
-                user_id: userId
-              }
-            }
-          },
-          {
-            users: {
-              every: {
-                status: "OFICIAL"
-              }
+          ]
+        },
+        select: {
+          user_id: true,
+          role: true,
+          status: true,
+          createdAt: true,
+          room: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              code: true,
+              status: true,
+              createdAt: true,
+              updatedAt: true 
             }
           }
-        ]
-      },
-      take: limit,
-      skip,
-      select: {
-        id: true,
-        code: true,
-        name: true,
-        description: true,
-        createdAt: true,
-        updatedAt: true,
-        status: true,
-        users: {
-          where: {
-            user_id: userId
-          },
-          select: {
-            role: true,
-            createdAt: true,
-          }
+        },
+        take: query.limit,
+        skip: query.skip
+      });
+  
+      return findInvitation;
+    }
+  
+    public async countInvitation(userId: string): Promise<number> {
+      const findInvitation = await this.prismaService.user_Room.count({
+        where: {
+          AND: [
+            {
+              user_id: userId
+            },
+            {
+              status: "INVITATION"
+            }
+          ]
         }
-      }
-    })
-    return findAllRoom;
-  }
+      });
+  
+      return findInvitation;
+    }
 
   public async countAll (
     {
       search,
     }: QueryCommonDto,
     userId: string): Promise<number> {
-    const findAllRoom = await this.prismaService.room.count({
+      const findAllRooms = await this.prismaService.user_Room.count({
+        where: {
+          AND: [
+            {
+              status: "OFICIAL"
+            },
+            {
+              user_id: userId
+            }
+          ]
+        }
+      });
+  
+      return findAllRooms;
+  }
+
+  public async findAllRooms(
+    {
+      // search,
+      skip,
+      limit
+    }: QueryCommonDto,userId: string): Promise<IResponseRoomAll[]>{
+    const findAllRooms = await this.prismaService.user_Room.findMany({
       where: {
         AND: [
           {
-            name: {
-              contains: search,
-              mode: "insensitive"
-            }
+            status: "OFICIAL"
           },
           {
-            users: {
-              some: {
-                user_id: userId
-              }
-            }
-          },
-          {
-            users: {
-              every: {
-                status: "OFICIAL"
-              }
-            }
+            user_id: userId
           }
         ]
       },
-    })
-    return findAllRoom;
+      select: {
+        role: true,
+        status: true,
+        createdAt: true,
+        room: {
+          select:{
+            id: true,
+            code: true,
+            name: true,
+            description: true,
+            status: true,
+            createdAt: true,
+            updatedAt: true
+          }
+        }
+      },
+      take: limit,
+      skip
+    });
+
+    return findAllRooms;
   }
 
 
@@ -147,10 +172,19 @@ export class RoomService {
   public async createRoom(createRoomDto:CreateRoomDto, userId: string): Promise<Room>{
     const findeUser = await this.userService.findIdUser(userId);
 
+    console.log(createRoomDto);
     const findRoomName = await this.findRoomName(createRoomDto.name);
     if(findRoomName)
       throw new BadRequestException("Ingrese otro nombre")
 
+    let data = {};
+    console.log("entrando?");
+    if(createRoomDto.sketch){
+      console.log("entra");
+      data = await this.importsCanvaService.processSketch(createRoomDto.sketch.buffer);
+      console.log(data);
+    }
+   
     const createRoom = await this.prismaService.room.create({
       data: {
         name: createRoomDto.name,
@@ -160,10 +194,10 @@ export class RoomService {
           create: {
             user_id: findeUser.id,
             role: "OWNER",
-            status: "OFICIAL"
+            status: "OFICIAL",
           }
         },
-        data: {}
+        data
       }
     })
 

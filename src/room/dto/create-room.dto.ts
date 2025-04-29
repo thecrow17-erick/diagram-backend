@@ -1,4 +1,5 @@
-import { IsString, MaxLength, MinLength } from "class-validator";
+import { IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { HasMimeType, IsFile, MaxFileSize, MemoryStoredFile } from "nestjs-form-data";
 
 export class CreateRoomDto {
   @IsString()
@@ -12,4 +13,10 @@ export class CreateRoomDto {
   @MaxLength(255)
   description: string
 
+
+  @IsFile()
+  @IsOptional()
+  @MaxFileSize(5 * 1024 * 1024)
+  @HasMimeType(['image/*'])
+  sketch?:     MemoryStoredFile;
 }

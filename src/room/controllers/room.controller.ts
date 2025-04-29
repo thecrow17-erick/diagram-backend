@@ -1,11 +1,12 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { IApiResponse } from 'src/common/interface';
-import { IResponseRoom, IResponseRoomId, IResponseRooms } from '../interfaces';
+import { IResponseGetInvitations, IResponseRoom, IResponseRoomId, IResponseRooms } from '../interfaces';
 import { Request } from 'express';
 import { QueryCommonDto } from 'src/common/dto';
 import { RoomService } from '../services';
 import { CreateRoomDto } from '../dto';
 import { AuthTokenGuard } from 'src/auth/guard';
+import { FormDataRequest, MemoryStoredFile } from 'nestjs-form-data';
 
 @Controller('room')
 @UseGuards(AuthTokenGuard)
@@ -23,7 +24,7 @@ export class RoomController {
     const statusCode = HttpStatus.OK;
     const {UserId} = req;
     const [rooms, total] = await Promise.all([
-      this.roomService.findAll(query,UserId),
+      this.roomService.findAllRooms(query,UserId),
       this.roomService.countAll(query,UserId)
     ])
     return {
@@ -32,6 +33,28 @@ export class RoomController {
       data: {
         total,
         rooms
+      }
+    }
+  }
+
+  @Get("invitation")
+  @HttpCode(HttpStatus.OK)
+  public async findInvitations(
+    @Query() query: QueryCommonDto,
+    @Req() req: Request
+  ): Promise<IApiResponse<IResponseGetInvitations>> {
+    const statusCode = HttpStatus.OK;
+    const {UserId} = req;
+    const [rooms, total] = await Promise.all([
+      this.roomService.findInvitation(query,UserId),
+      this.roomService.countInvitation(UserId)
+    ]);
+    return {
+      statusCode,
+      message: "Todas las invitaciones",
+      data: {
+        rooms,
+        total
       }
     }
   }
@@ -68,6 +91,7 @@ export class RoomController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @FormDataRequest({storage: MemoryStoredFile})
   public async createRomms(
     @Req() req: Request,
     @Body() createRoomDto: CreateRoomDto
@@ -124,4 +148,8 @@ export class RoomController {
     }
   }
 
+
+  
+
+  
 }

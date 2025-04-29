@@ -65,7 +65,8 @@ export class UserRoomService {
               }
             },
             data: {
-              status: "INVITATION"
+              status: "INVITATION",
+              role: addUserRoomDto.role
             }
           });
         }

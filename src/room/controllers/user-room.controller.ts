@@ -34,26 +34,56 @@ export class UserRoomController {
       this.userService.findAllRoom(
         query, {
           where: {
-            rooms: {
-              none: {
-                room_id: roomId
+            OR: [
+              {
+                rooms: {
+                  none: {
+                    room_id: roomId
+                  }
+                } 
+              },
+              {
+                rooms: {
+                  every: {
+                    NOT: [
+                      {
+                        status:{ in: ["INVITATION", "OFICIAL"]}
+                      }
+                    ]
+                  }
+                }
               }
-            }, 
-            username: {
+            ],
+            email: {
               contains: query.search,
               mode: "insensitive"
-            }
+            }  
           }
         }
       ),
       this.userService.countAllRoom({
         where: {
-          rooms: {
-            none: {
-              room_id: roomId
+          OR: [
+            {
+              rooms: {
+                none: {
+                  room_id: roomId
+                }
+              } 
+            },
+            {
+              rooms: {
+                every: {
+                  NOT: [
+                    {
+                      status:{ in: ["INVITATION", "OFICIAL"]}
+                    }
+                  ]
+                }
+              }
             }
-          }, 
-          username: {
+          ],
+          email: {
             contains: query.search,
             mode: "insensitive"
           }
@@ -126,7 +156,7 @@ export class UserRoomController {
     }
   }
 
-  @Delete("removed-user")
+  @Put("removed-user")
   @HttpCode(HttpStatus.OK)
   @Roles("OWNER")
   @UseGuards(RoomRoleGuard)

@@ -35,7 +35,7 @@ RUN npm install --only=production
 
 # RUN rm package*.json
 
-RUN "npm run build"
+RUN npm run build
 
 EXPOSE ${PORT}
 

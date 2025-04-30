@@ -20,9 +20,9 @@ export class MailService {
       template: "./invitation",
       context: {
         roomName: invitation.room.name,
-        acceptUrl: `${url}/invitation/${invitation.room.code}`
+        acceptUrl: `${url}/home`
       }
-    })
+    })  
 
     
   }
@@ -36,7 +36,7 @@ export class MailService {
       context: {
         roomName: invitation.room.name,
         userName: invitation.user.username,
-        roomUrl: `${url}/room/${invitation.room.code}`,
+        roomUrl: `${url}/canva/${invitation.room.code}`,
       }
     })
     

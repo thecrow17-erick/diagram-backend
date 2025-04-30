@@ -27,6 +27,7 @@ ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
 
 COPY --from=build /usr/src/app/dist ./dist
+COPY --from=build /usr/src/app/node_modules ./node_modules
 COPY --from=build /usr/src/app/prisma ./prisma
 COPY --from=build /usr/src/app/package.json  ./package.json
 # COPY package*.json ./
@@ -39,4 +40,4 @@ RUN npm run build
 
 EXPOSE ${PORT}
 
-CMD ["node","dist/main.js" ]
+CMD ["npm run","start:prod" ]

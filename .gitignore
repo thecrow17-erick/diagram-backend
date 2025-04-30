@@ -52,7 +52,7 @@ lerna-debug.log*
 # temp directory
 .temp
 .tmp
-
+/tmp
 # Runtime data
 pids
 *.pid
